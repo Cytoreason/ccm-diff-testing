@@ -1,0 +1,6 @@
+@Library('common-cr-pipeline@master') _
+withEnv(['TEST_ENV=cr-configmap-auth0', 'PATCH_FILES=NONE',
+         'TEST_CMD=poetry install --only test && poetry run pytest tests --cov -m unittest',
+         'CACHING=docker,poetry']) {
+   cr_py_pipeline()
+}

@@ -1,0 +1,98 @@
+[tool.poetry]
+name = "py-project-template"
+version = "0.3.2"
+description = ""
+authors = ["Ron Poches <ron.poches@cytoreason.com>", "Amihay Gonen <amihay.gonen@cytoreason.com>",
+           "Lior Garber <lior.garber@cytoreason.com>"]
+readme = "README.md"
+packages = [
+    { include = "sample_pkg", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pycytocc = { version = "^1.0.13", source = "artifact-registry" }
+fire = "^0.6.0"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.9.6"
+poetry-bumpversion = "^0.3.2"
+pre-commit = "^4.1.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.1"
+pytest-cov = "^4.0"
+pytest-mock = "^3.9"
+
+[tool.poetry.group.cytocc_env.dependencies]
+dill = "*"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "*"
+sphinxcontrib-confluencebuilder = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "artifact-registry"
+url = "https://europe-west1-python.pkg.dev/cytoreason/cytoreason-python-all/simple/"
+priority = "primary"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "supplemental"
+
+[tool.poetry.scripts]
+hello-world = 'sample_pkg.sample:run'
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py311"
+
+[tool.ruff.format]
+# Indent with spaces
+indent-style = "space"
+
+[tool.ruff.lint]
+isort.known-first-party = ["src"]
+ignore = ["E501"]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ['src']
+testpaths = ['tests/*']
+markers = [
+    "unittest: mark a test as a unit test.",
+    "integration: mark test as integration test."
+]
+
+[tool.coverage.run]
+omit = ['*/google-cloud-sdk/*', './tests/*']
+
+[tool.coverage.report]
+fail_under = 50
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:"
+]
+
+[tool.poetry_bumpversion.file."src/__init__.py"]
+# more examples here: https://pypi.org/project/poetry-bumpversion/

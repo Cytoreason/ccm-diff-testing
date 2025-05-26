@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "ms-python.python",
+        "zeshuaro.vscode-python-poetry",
+        "littlefoxteam.vscode-python-test-adapter",
+        "tamasfe.even-better-toml",
+        "njpwerner.autodocstring",
+        "ms-vscode.makefile-tools"
+    ]
+}

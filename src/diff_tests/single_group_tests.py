@@ -1,44 +1,12 @@
-"""Module providing a sample function"""
-import fire
-import pycytocc
 import numpy as np
-from scipy import stats
 import pandas as pd
-from loguru import logger
-from sample_pkg.utils.util import get_date
-from pycytocc.client import create_task, post_tasks, wait_wf
 
 
 class SingleGroupTests:
-    """simple class for running something"""
-
-    # def do_something(self, input1, input2='stam'):
-    #     """
-    #     :param input1:
-    #     :param input2:
-    #     :return: True or False
-    #     """
-    #     logger.debug(f"input1={input1}, input2={input2}")
-    #     logger.info(get_date())
-    #     return pycytocc.client.is_capsule_env()
+    """measurements relevant to a single group of samples"""
 
     @staticmethod
-    def calc_corr_diff(input1, input2='stam'):
-        """
-        :param input1:
-        :param input2:
-        :return: wf status
-        :rtype: str
-        """
-        logger.debug(f"input1={input1}, input2={input2}")
-        logger.info("Running cyto-cc task")
-        my_task = create_task(command='ls -lh')
-        wf = post_tasks([my_task], wait=False, force_execution=True)
-        wf = wait_wf(wf['workflow_id'], wait_for_descendants=True, interval=69)
-        return wf['status']
-
-    @staticmethod
-    def compare_correlations(df1: pd.DataFrame, df2: pd.DataFrame) -> float:
+    def calc_mean_feature_correlation(df1: pd.DataFrame, df2: pd.DataFrame) -> float:
         """Calculate Pearson correlation between corresponding columns in two dataframes.
         
         Args:
@@ -46,7 +14,10 @@ class SingleGroupTests:
             df2: Second dataframe
             
         Returns:
-            float: Correlation coefficient between the two dataframes
+            float: Mean correlation coefficient between the two dataframes
+            
+        Raises:
+            ValueError: If no common columns or if any column has constant values
         """
         # Ensure dataframes have same columns
         common_cols = df1.columns.intersection(df2.columns)
@@ -56,10 +27,14 @@ class SingleGroupTests:
         # Calculate correlation for each common column
         correlations = []
         for col in common_cols:
+            # Check for constant values
+            if df1[col].std() == 0 or df2[col].std() == 0:
+                raise ValueError(f"Column {col} contains constant values - correlation undefined")
+                
             corr = np.corrcoef(df1[col].values, df2[col].values)[0, 1]
             correlations.append(corr)
             
-        return np.mean(correlations)
+        return correlations,np.mean(correlations)
 
     @staticmethod
     def compare_biological_expectations(df1: pd.DataFrame, df2: pd.DataFrame, 
@@ -111,47 +86,48 @@ class SingleGroupTests:
         return results
 
     @staticmethod
-    def compare_distributions(df1: pd.DataFrame, df2: pd.DataFrame) -> dict:
-        """Compare distributions of values using KS test.
+    def rank_features_by_discrepancy(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+        """Rank features based on their discrepancy between two dataframes.
         
         Args:
             df1: First dataframe
             df2: Second dataframe
             
         Returns:
-            dict: Dictionary containing KS test statistics and p-values for each column
+            pd.DataFrame: DataFrame containing features ranked by absolute mean difference,
+                         including mean values and percent change
+                         
+        Raises:
+            ValueError: If no common columns between dataframes
         """
+        # Ensure dataframes have same columns
         common_cols = df1.columns.intersection(df2.columns)
         if len(common_cols) == 0:
             raise ValueError("No common columns between dataframes")
             
-        results = {}
+        # Calculate statistics for each feature
+        results = []
         for col in common_cols:
-            # Scale the data to [0,1] range to make comparisons fair
-            df1_scaled = (df1[col] - df1[col].min()) / (df1[col].max() - df1[col].min())
-            df2_scaled = (df2[col] - df2[col].min()) / (df2[col].max() - df2[col].min())
+            mean1 = df1[col].mean()
+            mean2 = df2[col].mean()
+            abs_diff = abs(mean2 - mean1)
+            # Calculate percent change, handling zero mean1 case
+            pct_change = ((mean2 - mean1) / mean1 * 100) if mean1 != 0 else float('inf')
             
-            # Perform KS test
-            statistic, pvalue = stats.ks_2samp(df1_scaled, df2_scaled)
-            results[col] = {
-                'statistic': statistic,
-                'pvalue': pvalue
-            }
-            
-        return results
+            results.append({
+                'feature': col,
+                'mean_df1': mean1,
+                'mean_df2': mean2,
+                'absolute_difference': abs_diff,
+                'percent_change': pct_change
+            })
+        
+        # Create DataFrame and sort by absolute difference
+        result_df = pd.DataFrame(results)
+        result_df = result_df.sort_values('absolute_difference', ascending=False)
+        result_df = result_df.reset_index(drop=True)
+        
+        return result_df
 
 
-
-# # example usage
-# # For correlations
-# correlation = SingleGroupTests.compare_correlations(df1, df2)
-
-# # For biological expectations
-# expectations = [
-#     {'column': 'value1', 'condition': '>', 'value': 0.5},
-#     {'column': 'value2', 'condition': '<', 'value': 100}
-# ]
-# bio_results = SingleGroupTests.compare_biological_expectations(df1, df2, expectations)
-
-# # For distribution comparison
-# dist_results = SingleGroupTests.compare_distributions(df1, df2)
+    

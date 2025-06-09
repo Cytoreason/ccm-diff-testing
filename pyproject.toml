@@ -1,12 +1,11 @@
 [tool.poetry]
-name = "py-project-template"
-version = "0.3.2"
-description = ""
-authors = ["Ron Poches <ron.poches@cytoreason.com>", "Amihay Gonen <amihay.gonen@cytoreason.com>",
-           "Lior Garber <lior.garber@cytoreason.com>"]
+name = "ccm-diff-testing"
+version = "0.0.1"
+description = "About functions to quantify differences between E2 generated results and CCM results"
+authors = ["Roye Rozov <roye.rozov@cytoreason.com>"]
 readme = "README.md"
 packages = [
-    { include = "sample_pkg", from = "src" }
+    { include = "diff_tests", from = "src" }
 ]
 
 [tool.poetry.dependencies]
@@ -14,6 +13,9 @@ python = "^3.11"
 pycytocc = { version = "^1.0.13", source = "artifact-registry" }
 fire = "^0.6.0"
 loguru = "^0.7.2"
+numpy = "^2.2.6"
+pandas = "^2.2.3"
+scipy = "^1.15.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"

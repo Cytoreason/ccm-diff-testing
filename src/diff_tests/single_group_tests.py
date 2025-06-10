@@ -8,9 +8,7 @@ class SingleGroupTests:
     @staticmethod
     def calc_mean_feature_correlation(df1: pd.DataFrame, df2: pd.DataFrame) -> float:
         """Calculate Pearson correlation between corresponding columns in two dataframes.
-        assumptions:
-            - df1 and df2 are both pandas dataframes
-            - df1 and df2 have the same features in the rows
+        
         Args:
             df1: First dataframe
             df2: Second dataframe
@@ -36,7 +34,7 @@ class SingleGroupTests:
             corr = np.corrcoef(df1[col].values, df2[col].values)[0, 1]
             correlations.append(corr)
             
-        return correlations,np.mean(correlations)
+        return correlations, np.mean(correlations)
 
     @staticmethod
     def compare_biological_expectations(df1: pd.DataFrame, df2: pd.DataFrame, 

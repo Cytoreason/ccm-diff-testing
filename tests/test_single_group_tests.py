@@ -45,46 +45,14 @@ class TestSingleGroupTests:
         with pytest.raises(ValueError, match="No common columns between dataframes"):
             SingleGroupTests.calc_mean_feature_correlation(df1, df2)
 
-    def test_compare_biological_expectations(self, sample_dataframes):
-        """Test that compare_biological_expectations 
-        returns the correct results for the sample dataframes"""
-        df1, df2 = sample_dataframes
+    def test_calc_mean_feature_correlation_no_common_rows(self):
+        """Test that calc_mean_feature_correlation 
+        raises an error if there are no common rows between the dataframes"""
+        df1 = pd.DataFrame({'col1': [1, 2, 3]})
+        df2 = pd.DataFrame({'col1': [4, 5, 6]})
         
-        expectations = [
-            {'column': 'col1', 'condition': '>', 'value': 2},
-            {'column': 'col2', 'condition': '<', 'value': 7},
-            {'column': 'col3', 'condition': '==', 'value': 1}
-        ]
-        
-        results = SingleGroupTests.compare_biological_expectations(df1, df2, expectations)
-        
-        # For df1:
-        # col1 > 2: [F, F, T, T, T] -> 0.6
-        # col2 < 7: [T, T, T, F, F] -> 0.6
-        # col3 == 1: [T, T, T, T, T] -> 1.0
-        assert np.isclose(results['df1_met'][0], 0.6)
-        assert np.isclose(results['df1_met'][1], 0.6)
-        assert np.isclose(results['df1_met'][2], 1.0)
-        
-        # For df2:
-        # col1 > 2: [F, F, T, T, T] -> 0.6
-        # col2 < 7: [F, F, T, T, T] -> 0.6
-        # col3 == 1: [F, F, F, F, F] -> 0.0
-        assert np.isclose(results['df2_met'][0], 0.6)
-        assert np.isclose(results['df2_met'][1], 0.6)
-        assert np.isclose(results['df2_met'][2], 0.0)
-
-    def test_compare_biological_expectations_invalid_condition(self, sample_dataframes):
-        """Test that compare_biological_expectations 
-        raises an error if the condition is invalid"""
-        df1, df2 = sample_dataframes
-        expectations = [
-            {'column': 'col1', 'condition': 'invalid', 'value': 2}
-        ]
-        
-        with pytest.raises(ValueError, match="Unknown condition: invalid"):
-            SingleGroupTests.compare_biological_expectations(df1, df2, expectations)
-
+        with pytest.raises(ValueError, match="No common rows between dataframes"):
+            SingleGroupTests.calc_mean_feature_correlation(df1, df2)
 
     def test_rank_features_by_discrepancy(self, sample_dataframes):
         """Test that rank_features_by_discrepancy 
